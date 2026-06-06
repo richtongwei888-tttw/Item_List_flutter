@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:item_list_flutter/app/app_theme.dart';
+import 'package:item_list_flutter/data/notifications/local_notification_gateway.dart';
+import 'package:item_list_flutter/data/notifications/notification_providers.dart';
 import 'package:item_list_flutter/features/tasks/application/task_repository.dart';
 import 'package:item_list_flutter/features/tasks/domain/reminder_offset.dart';
 import 'package:item_list_flutter/features/tasks/domain/reminder_sync_status.dart';
@@ -120,17 +122,47 @@ void main() {
     expect(find.text('立即提醒'), findsOneWidget);
     expect(find.text('关闭提醒'), findsOneWidget);
   });
+
+  testWidgets('denied notification permission keeps reminder form open', (
+    tester,
+  ) async {
+    final repository = _FormTaskRepository();
+    await tester.pumpWidget(
+      _testApp(
+        repository,
+        task: Task.test(
+          dueDate: DateTime(2026, 6, 7, 18),
+          reminderEnabled: true,
+          reminderOffset: ReminderOffset.twoHours,
+          reminderSyncStatus: ReminderSyncStatus.pending,
+        ),
+        permissionRequester: const _DeniedPermissionRequester(),
+      ),
+    );
+
+    await tester.tap(find.text('保存任务'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('通知权限未开启，无法设置提醒'), findsOneWidget);
+    expect(find.text('保存任务'), findsOneWidget);
+    expect(repository.tasks, isEmpty);
+  });
 }
 
 Widget _testApp(
   _FormTaskRepository repository, {
   Task? task,
   ValueChanged<Task>? onSaved,
+  NotificationPermissionRequester? permissionRequester,
 }) {
   return ProviderScope(
     overrides: [
       taskRepositoryProvider.overrideWithValue(repository),
       currentTimeProvider.overrideWithValue(DateTime(2026, 6, 6, 10)),
+      if (permissionRequester != null)
+        notificationPermissionRequesterProvider.overrideWithValue(
+          permissionRequester,
+        ),
     ],
     child: MaterialApp(
       theme: ClearFlowTheme.light,
@@ -172,4 +204,14 @@ final class _FormTaskRepository implements TaskRepository {
 
   @override
   Stream<List<Task>> watchAll() => const Stream.empty();
+}
+
+final class _DeniedPermissionRequester
+    implements NotificationPermissionRequester {
+  const _DeniedPermissionRequester();
+
+  @override
+  Future<NotificationPermissionStatus> requestPermission() async {
+    return NotificationPermissionStatus.denied;
+  }
 }

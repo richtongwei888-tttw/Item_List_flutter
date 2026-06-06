@@ -17,9 +17,11 @@ final class TaskActionFailed extends TaskActionResult {
 }
 
 final class TaskService {
-  const TaskService(this._repository);
+  const TaskService(this._repository, {Future<void> Function()? afterMutation})
+    : _afterMutation = afterMutation;
 
   final TaskRepository _repository;
+  final Future<void> Function()? _afterMutation;
 
   Future<TaskActionResult> save(Task task) {
     return _run(() => _repository.save(task));
@@ -40,6 +42,11 @@ final class TaskService {
   Future<TaskActionResult> _run(Future<void> Function() operation) async {
     try {
       await operation();
+      try {
+        await _afterMutation?.call();
+      } on Object {
+        // Persistence succeeded; reminder jobs remain available for retry.
+      }
       return const TaskActionSuccess();
     } on ArgumentError catch (error) {
       return TaskActionFailed(ValidationFailure(error.message.toString()));

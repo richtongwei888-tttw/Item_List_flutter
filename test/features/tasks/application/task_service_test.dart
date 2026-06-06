@@ -45,6 +45,38 @@ void main() {
     expect(repository.tasks['task']?.isCompleted, isFalse);
     expect(repository.tasks['task']?.completedAt, isNull);
   });
+
+  test('successful persistence triggers the post-mutation handler', () async {
+    var handled = 0;
+    service = TaskService(
+      repository,
+      afterMutation: () async {
+        handled++;
+      },
+    );
+
+    final result = await service.save(Task.test());
+
+    expect(result, isA<TaskActionSuccess>());
+    expect(handled, 1);
+  });
+
+  test(
+    'post-mutation failure does not turn a saved task into failure',
+    () async {
+      service = TaskService(
+        repository,
+        afterMutation: () async {
+          throw StateError('notification unavailable');
+        },
+      );
+
+      final result = await service.save(Task.test());
+
+      expect(result, isA<TaskActionSuccess>());
+      expect(repository.tasks, contains('task'));
+    },
+  );
 }
 
 final class _FakeTaskRepository implements TaskRepository {

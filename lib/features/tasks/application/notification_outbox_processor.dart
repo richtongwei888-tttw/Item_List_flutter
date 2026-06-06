@@ -12,12 +12,18 @@ final class NotificationProcessResult {
   final int failed;
 }
 
-final class NotificationOutboxProcessor {
+abstract interface class PendingNotificationProcessor {
+  Future<NotificationProcessResult> processPending();
+}
+
+final class NotificationOutboxProcessor
+    implements PendingNotificationProcessor {
   const NotificationOutboxProcessor(this._database, this._gateway);
 
   final AppDatabase _database;
   final NotificationGateway _gateway;
 
+  @override
   Future<NotificationProcessResult> processPending() async {
     final jobs = await _database.pendingNotificationJobs();
     var succeeded = 0;

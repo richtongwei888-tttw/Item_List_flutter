@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:item_list_flutter/app/app_theme.dart';
+import 'package:item_list_flutter/data/notifications/local_notification_gateway.dart';
+import 'package:item_list_flutter/data/notifications/notification_providers.dart';
 import 'package:item_list_flutter/features/tasks/application/task_service.dart';
 import 'package:item_list_flutter/features/tasks/domain/reminder_offset.dart';
 import 'package:item_list_flutter/features/tasks/domain/reminder_policy.dart';
@@ -305,6 +307,21 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         reminderOffset = resolution
             ? ReminderOffset.immediate
             : ReminderOffset.dateAtNine;
+      }
+    }
+
+    if (reminderEnabled) {
+      final permission = await ref
+          .read(notificationPermissionRequesterProvider)
+          .requestPermission();
+      if (!mounted) {
+        return;
+      }
+      if (permission != NotificationPermissionStatus.granted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('通知权限未开启，无法设置提醒')));
+        return;
       }
     }
 
