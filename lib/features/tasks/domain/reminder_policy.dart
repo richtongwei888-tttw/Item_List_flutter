@@ -15,6 +15,10 @@ abstract final class ReminderPolicy {
       return null;
     }
 
+    if (offset == ReminderOffset.immediate) {
+      return now.add(const Duration(seconds: 1));
+    }
+
     final scheduledAt = task.hasDueTime
         ? dueDate.subtract(offset.duration ?? Duration.zero)
         : DateTime(dueDate.year, dueDate.month, dueDate.day, 9);

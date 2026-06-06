@@ -177,5 +177,18 @@ void main() {
         isNull,
       );
     });
+
+    test('immediate reminder schedules one second after now', () {
+      final task = Task.test(
+        dueDate: DateTime(2026, 6, 6, 11),
+        reminderEnabled: true,
+        reminderOffset: ReminderOffset.immediate,
+      );
+
+      expect(
+        ReminderPolicy.calculate(task, ReminderOffset.immediate, now),
+        now.add(const Duration(seconds: 1)),
+      );
+    });
   });
 }

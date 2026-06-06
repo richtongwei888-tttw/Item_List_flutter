@@ -1,4 +1,5 @@
 enum ReminderOffset {
+  immediate,
   atTime,
   tenMinutes,
   thirtyMinutes,
@@ -8,6 +9,7 @@ enum ReminderOffset {
   dateAtNine;
 
   Duration? get duration => switch (this) {
+    ReminderOffset.immediate => Duration.zero,
     ReminderOffset.atTime => Duration.zero,
     ReminderOffset.tenMinutes => const Duration(minutes: 10),
     ReminderOffset.thirtyMinutes => const Duration(minutes: 30),

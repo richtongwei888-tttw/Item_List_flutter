@@ -33,6 +33,64 @@ final class AppDatabase extends _$AppDatabase {
     )..orderBy([(row) => OrderingTerm.asc(row.createdAt)])).get();
   }
 
+  Future<ProfileRow> getProfileRow() async {
+    final row = await (select(
+      profileRows,
+    )..where((row) => row.id.equals(1))).getSingleOrNull();
+    if (row != null) {
+      return row;
+    }
+    await into(profileRows).insert(
+      const ProfileRowsCompanion(id: Value(1)),
+      mode: InsertMode.insertOrIgnore,
+    );
+    return (select(profileRows)..where((row) => row.id.equals(1))).getSingle();
+  }
+
+  Future<void> saveProfileRow({
+    required String displayName,
+    required String? avatarPath,
+  }) {
+    return into(profileRows).insertOnConflictUpdate(
+      ProfileRowsCompanion(
+        id: const Value(1),
+        displayName: Value(displayName),
+        avatarPath: Value(avatarPath),
+      ),
+    );
+  }
+
+  Future<PreferenceRow> getPreferenceRow() async {
+    final row = await (select(
+      preferenceRows,
+    )..where((row) => row.id.equals(1))).getSingleOrNull();
+    if (row != null) {
+      return row;
+    }
+    await into(preferenceRows).insert(
+      const PreferenceRowsCompanion(id: Value(1)),
+      mode: InsertMode.insertOrIgnore,
+    );
+    return (select(
+      preferenceRows,
+    )..where((row) => row.id.equals(1))).getSingle();
+  }
+
+  Future<void> savePreferenceRow({
+    required String defaultFilter,
+    required bool animationsEnabled,
+    required bool notificationPermissionPrompted,
+  }) {
+    return into(preferenceRows).insertOnConflictUpdate(
+      PreferenceRowsCompanion(
+        id: const Value(1),
+        defaultFilter: Value(defaultFilter),
+        animationsEnabled: Value(animationsEnabled),
+        notificationPermissionPrompted: Value(notificationPermissionPrompted),
+      ),
+    );
+  }
+
   Future<void> completeNotificationJob(
     int jobId,
     String taskId,
