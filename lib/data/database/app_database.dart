@@ -32,4 +32,46 @@ final class AppDatabase extends _$AppDatabase {
       notificationJobRows,
     )..orderBy([(row) => OrderingTerm.asc(row.createdAt)])).get();
   }
+
+  Future<void> completeNotificationJob(
+    int jobId,
+    String taskId,
+    String syncStatus,
+  ) {
+    return transaction(() async {
+      await (delete(
+        notificationJobRows,
+      )..where((row) => row.id.equals(jobId))).go();
+      await (update(taskRows)..where((row) => row.id.equals(taskId))).write(
+        TaskRowsCompanion(reminderSyncStatus: Value(syncStatus)),
+      );
+    });
+  }
+
+  Future<void> failNotificationJob(
+    int jobId,
+    String taskId,
+    String error,
+    String syncStatus,
+  ) {
+    return transaction(() async {
+      final job = await (select(
+        notificationJobRows,
+      )..where((row) => row.id.equals(jobId))).getSingleOrNull();
+      if (job == null) {
+        return;
+      }
+      await (update(
+        notificationJobRows,
+      )..where((row) => row.id.equals(jobId))).write(
+        NotificationJobRowsCompanion(
+          attemptCount: Value(job.attemptCount + 1),
+          lastError: Value(error),
+        ),
+      );
+      await (update(taskRows)..where((row) => row.id.equals(taskId))).write(
+        TaskRowsCompanion(reminderSyncStatus: Value(syncStatus)),
+      );
+    });
+  }
 }
