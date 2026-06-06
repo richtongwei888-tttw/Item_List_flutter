@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:item_list_flutter/app/app_theme.dart';
+import 'package:item_list_flutter/features/shell/presentation/app_shell.dart';
 
 class ClearFlowApp extends StatelessWidget {
   const ClearFlowApp({super.key});
@@ -6,23 +9,13 @@ class ClearFlowApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: '清序',
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: const SizedBox.shrink(),
-        bottomNavigationBar: NavigationBar(
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.check_circle_outline),
-              label: '任务',
-            ),
-            NavigationDestination(icon: Icon(Icons.donut_large), label: '统计'),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              label: '我的',
-            ),
-          ],
-        ),
-      ),
+      theme: ClearFlowTheme.light,
+      locale: const Locale('zh', 'CN'),
+      supportedLocales: const [Locale('zh', 'CN')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      home: const AppShell(),
     );
   }
 }
