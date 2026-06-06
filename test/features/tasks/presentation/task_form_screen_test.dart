@@ -147,6 +147,19 @@ void main() {
     expect(find.text('保存任务'), findsOneWidget);
     expect(repository.tasks, isEmpty);
   });
+
+  testWidgets('save action stays above the software keyboard', (tester) async {
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpWidget(_testApp(_FormTaskRepository()));
+    await tester.pump();
+
+    final saveButton = find.widgetWithText(FilledButton, '保存任务');
+    final mediaQuery = MediaQuery.of(tester.element(saveButton));
+    final visibleBottom = mediaQuery.size.height - mediaQuery.viewInsets.bottom;
+
+    expect(tester.getRect(saveButton).bottom, lessThanOrEqualTo(visibleBottom));
+  });
 }
 
 Widget _testApp(

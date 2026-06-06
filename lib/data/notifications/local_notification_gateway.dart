@@ -158,7 +158,9 @@ final class LocalNotificationGateway
       return;
     }
     tz_data.initializeTimeZones();
-    final identifier = await _deviceTimeZone.localIdentifier();
+    final identifier = _normalizeTimeZone(
+      await _deviceTimeZone.localIdentifier(),
+    );
     tz.setLocalLocation(tz.getLocation(identifier));
     await _client.initialize(onTaskSelected: _selectedTaskIds.add);
     _initialized = true;
@@ -205,5 +207,12 @@ final class LocalNotificationGateway
       hash = (hash * 0x01000193) & 0xffffffff;
     }
     return hash & 0x7fffffff;
+  }
+
+  static String _normalizeTimeZone(String identifier) {
+    return switch (identifier.toUpperCase()) {
+      'GMT' || 'UTC' => 'Etc/UTC',
+      _ => identifier,
+    };
   }
 }

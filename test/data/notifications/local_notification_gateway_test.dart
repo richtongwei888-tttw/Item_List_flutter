@@ -19,6 +19,17 @@ void main() {
     expect(client.initialized, isTrue);
   });
 
+  test('normalizes the Android GMT timezone alias', () async {
+    final gateway = LocalNotificationGateway(
+      client: _FakeNotificationClient(),
+      deviceTimeZone: const _FakeDeviceTimeZone('GMT'),
+    );
+
+    await gateway.initialize();
+
+    expect(tz.local.name, 'Etc/UTC');
+  });
+
   test('schedules and cancels with the same stable task id', () async {
     final client = _FakeNotificationClient();
     final gateway = LocalNotificationGateway(

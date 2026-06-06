@@ -136,15 +136,16 @@ class ProfileScreen extends ConsumerWidget {
     WidgetRef ref,
     UserProfile profile,
   ) async {
-    final controller = TextEditingController(text: profile.displayName);
+    var name = profile.displayName;
     final result = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('修改用户名'),
-        content: TextField(
-          controller: controller,
+        content: TextFormField(
+          initialValue: profile.displayName,
           autofocus: true,
           maxLength: 24,
+          onChanged: (value) => name = value,
           decoration: const InputDecoration(labelText: '用户名'),
         ),
         actions: [
@@ -154,9 +155,9 @@ class ProfileScreen extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () {
-              final name = controller.text.trim();
-              if (name.isNotEmpty) {
-                Navigator.pop(dialogContext, name);
+              final trimmedName = name.trim();
+              if (trimmedName.isNotEmpty) {
+                Navigator.pop(dialogContext, trimmedName);
               }
             },
             child: const Text('保存'),
@@ -164,7 +165,6 @@ class ProfileScreen extends ConsumerWidget {
         ],
       ),
     );
-    controller.dispose();
     if (result == null || !context.mounted) {
       return;
     }

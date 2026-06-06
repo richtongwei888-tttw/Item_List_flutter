@@ -36,6 +36,37 @@ void main() {
     expect(find.text('0.1.0 (1)'), findsOneWidget);
     expect(find.text('已保存'), findsOneWidget);
   });
+
+  testWidgets('saves a username after the edit dialog fully closes', (
+    tester,
+  ) async {
+    final repository = _FakeProfileRepository();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          profileRepositoryProvider.overrideWithValue(repository),
+          packageVersionReaderProvider.overrideWithValue(
+            const _FakeVersionReader(),
+          ),
+        ],
+        child: MaterialApp(
+          theme: ClearFlowTheme.light,
+          home: const Scaffold(body: ProfileScreen()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('修改用户名'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(EditableText), 'TWX');
+    await tester.tap(find.widgetWithText(FilledButton, '保存'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(repository.profile.displayName, 'TWX');
+    expect(find.text('TWX'), findsOneWidget);
+  });
 }
 
 final class _FakeProfileRepository implements ProfileRepository {
