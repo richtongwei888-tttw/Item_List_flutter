@@ -43,9 +43,7 @@ class _TaskCardState extends State<TaskCard> {
       key: ValueKey(task.id),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: task.hasNote
-            ? () => setState(() => _expanded = !_expanded)
-            : null,
+        onTap: () => setState(() => _expanded = !_expanded),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 13, 12, 13),
           child: Row(
@@ -132,18 +130,20 @@ class _TaskCardState extends State<TaskCard> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  const Divider(height: 1),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    task.note,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color: const Color(0xFF62695D),
-                                          height: 1.55,
-                                        ),
-                                  ),
+                                  if (task.hasNote) ...[
+                                    const Divider(height: 1),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      task.note,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: const Color(0xFF62695D),
+                                            height: 1.55,
+                                          ),
+                                    ),
+                                  ],
                                   const SizedBox(height: 8),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,

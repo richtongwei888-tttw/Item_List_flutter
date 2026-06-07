@@ -1,5 +1,8 @@
+import 'package:clock/clock.dart';
 import 'package:item_list_flutter/data/database/app_database.dart';
 import 'package:item_list_flutter/features/tasks/application/notification_gateway.dart';
+import 'package:item_list_flutter/features/tasks/domain/reminder_offset.dart';
+import 'package:item_list_flutter/features/tasks/domain/reminder_policy.dart';
 import 'package:item_list_flutter/features/tasks/domain/reminder_sync_status.dart';
 
 final class NotificationProcessResult {
@@ -36,10 +39,16 @@ final class NotificationOutboxProcessor
           if (task == null || job.scheduledAt == null) {
             await _gateway.cancel(job.taskId);
           } else {
+            final processingTime = clock.now();
+            final scheduledAt =
+                task.reminderOffset == ReminderOffset.immediate.name &&
+                    !job.scheduledAt!.isAfter(processingTime)
+                ? processingTime.add(ReminderPolicy.immediateLeadTime)
+                : job.scheduledAt!;
             await _gateway.schedule(
               taskId: job.taskId,
               title: task.title,
-              scheduledAt: job.scheduledAt!,
+              scheduledAt: scheduledAt,
             );
           }
         } else {

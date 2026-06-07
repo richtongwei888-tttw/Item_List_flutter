@@ -123,6 +123,30 @@ void main() {
     expect(find.text('关闭提醒'), findsOneWidget);
   });
 
+  testWidgets('date-only reminder after 09:00 offers immediate reminder', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _testApp(
+        _FormTaskRepository(),
+        task: Task.test(
+          dueDate: DateTime(2026, 6, 6),
+          hasDueTime: false,
+          reminderEnabled: true,
+          reminderOffset: ReminderOffset.dateAtNine,
+          reminderSyncStatus: ReminderSyncStatus.pending,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('保存任务'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('提醒时间已过'), findsOneWidget);
+    expect(find.text('立即提醒'), findsOneWidget);
+    expect(find.text('关闭提醒'), findsOneWidget);
+  });
+
   testWidgets('denied notification permission keeps reminder form open', (
     tester,
   ) async {

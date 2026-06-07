@@ -62,6 +62,30 @@ void main() {
     expect(find.text('删除'), findsOneWidget);
   });
 
+  testWidgets('no-note task still exposes edit and delete actions', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TaskCard(
+            task: Task.test(),
+            now: now,
+            onToggle: () async {},
+            onEdit: () {},
+            onDelete: () async {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Test task'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('编辑'), findsOneWidget);
+    expect(find.text('删除'), findsOneWidget);
+  });
+
   testWidgets('tapping completion control calls toggle', (tester) async {
     var toggles = 0;
     await tester.pumpWidget(

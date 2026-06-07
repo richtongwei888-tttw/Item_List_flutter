@@ -2,6 +2,8 @@ import 'package:item_list_flutter/features/tasks/domain/reminder_offset.dart';
 import 'package:item_list_flutter/features/tasks/domain/task.dart';
 
 abstract final class ReminderPolicy {
+  static const immediateLeadTime = Duration(seconds: 5);
+
   static DateTime? calculate(Task task, ReminderOffset offset, DateTime now) {
     final dueDate = task.dueDate;
     if (!task.reminderEnabled || dueDate == null || task.isCompleted) {
@@ -16,7 +18,7 @@ abstract final class ReminderPolicy {
     }
 
     if (offset == ReminderOffset.immediate) {
-      return now.add(const Duration(seconds: 1));
+      return now.add(immediateLeadTime);
     }
 
     final scheduledAt = task.hasDueTime

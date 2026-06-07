@@ -1,9 +1,11 @@
 import 'package:drift/native.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:item_list_flutter/data/database/app_database.dart';
 import 'package:item_list_flutter/features/tasks/application/notification_gateway.dart';
 import 'package:item_list_flutter/features/tasks/application/notification_outbox_processor.dart';
 import 'package:item_list_flutter/features/tasks/application/task_repository.dart';
+import 'package:item_list_flutter/features/tasks/domain/reminder_offset.dart';
 import 'package:item_list_flutter/features/tasks/domain/reminder_sync_status.dart';
 import 'package:item_list_flutter/features/tasks/domain/task.dart';
 
@@ -70,11 +72,37 @@ void main() {
       ReminderSyncStatus.failed,
     );
   });
+
+  test('stale immediate reminder is rebased from processing time', () async {
+    final processingTime = DateTime(2026, 6, 7, 10, 5);
+    await repository.save(
+      Task.test(
+        id: 'task-1',
+        dueDate: DateTime(2026, 6, 7, 12),
+        reminderEnabled: true,
+        reminderOffset: ReminderOffset.immediate,
+        reminderSyncStatus: ReminderSyncStatus.pending,
+        updatedAt: DateTime(2026, 6, 7, 10),
+      ),
+    );
+
+    await withClock(Clock.fixed(processingTime), () {
+      return NotificationOutboxProcessor(database, gateway).processPending();
+    });
+
+    expect(
+      gateway.scheduled.single.scheduledAt,
+      processingTime.add(const Duration(seconds: 5)),
+    );
+  });
 }
 
 final class _FakeNotificationGateway implements NotificationGateway {
-  final scheduledTaskIds = <String>[];
+  final scheduled = <_ScheduledNotification>[];
   bool shouldFail = false;
+
+  List<String> get scheduledTaskIds =>
+      scheduled.map((notification) => notification.taskId).toList();
 
   @override
   Future<void> cancel(String taskId) async {
@@ -92,6 +120,18 @@ final class _FakeNotificationGateway implements NotificationGateway {
     if (shouldFail) {
       throw StateError('notification unavailable');
     }
-    scheduledTaskIds.add(taskId);
+    scheduled.add(
+      _ScheduledNotification(taskId: taskId, scheduledAt: scheduledAt),
+    );
   }
+}
+
+final class _ScheduledNotification {
+  const _ScheduledNotification({
+    required this.taskId,
+    required this.scheduledAt,
+  });
+
+  final String taskId;
+  final DateTime scheduledAt;
 }

@@ -306,8 +306,11 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         createdAt: widget.task?.createdAt,
         now: now,
       );
+      final dueMoment = _dueTime == null
+          ? DateTime(dueAt.year, dueAt.month, dueAt.day, 23, 59, 59)
+          : dueAt;
       if (ReminderPolicy.calculate(preview, reminderOffset, now) == null &&
-          dueAt.isAfter(now)) {
+          dueMoment.isAfter(now)) {
         final resolution = await _showPastReminderDialog();
         if (resolution == null) {
           return;

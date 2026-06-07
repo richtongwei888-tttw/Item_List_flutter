@@ -178,7 +178,7 @@ void main() {
       );
     });
 
-    test('immediate reminder schedules one second after now', () {
+    test('immediate reminder leaves enough time for platform scheduling', () {
       final task = Task.test(
         dueDate: DateTime(2026, 6, 6, 11),
         reminderEnabled: true,
@@ -187,7 +187,7 @@ void main() {
 
       expect(
         ReminderPolicy.calculate(task, ReminderOffset.immediate, now),
-        now.add(const Duration(seconds: 1)),
+        now.add(const Duration(seconds: 5)),
       );
     });
   });
